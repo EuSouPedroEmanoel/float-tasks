@@ -1,76 +1,58 @@
-# PROJETO TO DO LIST - backend (FastAPI)
-
-Este repositório contém uma API simples construída com FastAPI.
-
+# PROJETO TO DO LIST - BACKEND (FASTAPI)
+Este repositório contém uma API de gerenciamento de tarefas (To-Do List) desenvolvida com FastAPI, focada em performance e facilidade de manutenção.
 ## Pré-requisitos
+Para rodar este projeto, você precisará dos seguintes itens instalados em sua máquina:
+ * Python 3.14 ou superior
+ * Poetry (gerenciador de dependências e ambientes virtuais)
+ * pipx (recomendado para gerenciar o Poetry)
+## Instalação
+O projeto utiliza o Poetry para gerenciar bibliotecas. Instale-as com o comando abaixo:
+```bash
+# Instalar dependências principais
+poetry install
 
-- Python 3.14 ou superior
-- Poetry (recomendado) ou pip
+# Caso deseje instalar as dependências de desenvolvimento (testes e linters)
+poetry install --with dev
 
-> As dependências principais são FastAPI e Uvicorn (definidas em pyproject.toml).
+```
+## Como executar
+Para iniciar a aplicação, utilize o comando definido no gerenciador de tarefas:
+```bash
+task run
 
-## Instalação (usando Poetry)
+```
+A API estará rodando em [http://127.0.0.1:8000](http://127.0.0.1:8000).
+## Documentação da API
+O FastAPI gera automaticamente documentação interativa baseada nos seus endpoints:
+ * **Swagger UI:** Acesse [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) para testar os endpoints diretamente no navegador.
+ * **Redoc:** Acesse [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc) para uma documentação mais detalhada.
+## Qualidade de Código e Testes
+O projeto utiliza o taskipy para facilitar a execução de comandos de manutenção e qualidade:
+ * **Formatar o código:**
+   ```bash
+   
+   ```
+task format
+```
+- **Executar linters:**
+  ```bash
+  task lint
 
-1. Instale o Poetry (se ainda não tiver):
+```
+ * **Executar testes:**
+   ```bash
+   task test
+   
+   ```
+```
 
-   python -m pip install --user poetry
+## Estrutura do Projeto
 
-2. Instale dependências do projeto:
+```text
+.
+├── todolist/         # Módulo principal da aplicação
+├── tests/            # Testes automatizados
+├── pyproject.toml    # Configurações do Poetry, dependências e tasks
+└── README.md         # Documentação do projeto
 
-   poetry install
-
-> Se quiser também instalar dependências de desenvolvimento (linters/tests):
-
-   poetry install --with dev
-
-3. Ative o ambiente do Poetry e execute a aplicação:
-
-   poetry run uvicorn todolist.app:app --reload
-
-## Alternativa (sem Poetry)
-
-1. Crie e ative um ambiente virtual:
-
-   python -m venv .venv
-   # Linux / macOS
-   source .venv/bin/activate
-   # Windows (PowerShell)
-   .\.venv\Scripts\Activate.ps1
-
-2. Instale as dependências necessárias:
-
-   pip install "fastapi[standard]" uvicorn
-
-3. Execute a aplicação:
-
-   uvicorn todolist.app:app --reload
-   # ou
-   python -m uvicorn todolist.app:app --reload
-
-## Como testar
-
-Com a aplicação em execução (por padrão em http://127.0.0.1:8000), abra o navegador ou use curl:
-
-- Abra: http://127.0.0.1:8000/
-- Ou via terminal:
-
-  curl http://127.0.0.1:8000/
-
-Você deve receber uma resposta JSON: {"message": "olá mundo"}
-
-## Executando testes
-
-Se instalou dependências de desenvolvimento, execute os testes com:
-
-- Usando Poetry:
-
-  poetry run pytest -s -x --cov=todolist -vv
-
-- Ou, se preferir, usando taskipy (definido em pyproject.toml):
-
-  poetry run task test
-
-
----
-
-Se quiser que eu adicione instruções específicas para Docker, deployment ou GitHub Actions, diga qual opção prefere que eu inclua.
+```
