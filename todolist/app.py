@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from todolist.database import get_session
@@ -20,23 +21,19 @@ def read_root():
 @app.post('/users/', status_code=HTTPStatus.CREATED, response_model=UserPublic)
 def create_user(user: UserSchema, session: Session = Depends(get_session)):
 
-    db_user = session.scalar(
-        select(User).where(
-            (User.username == user.username) | (User.email == user.email)
-        )
-    )
-
-    if db_user:
-        raise HTTPException(
-            status_code=HTTPStatus.CONFLICT,
-            detail='Email or username already exists...',
-        )
-
     db_user = User(**user.model_dump())
     session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
 
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail='Username or Email already exists!!',
+        )
+
+    session.refresh(db_user)
     return db_user
 
 
@@ -55,13 +52,15 @@ def read_users(
     '/users/{user_id}', status_code=HTTPStatus.OK, response_model=UserPublic
 )
 def read_user_by_id(user_id: int, session: Session = Depends(get_session)):
-    if user_id < 1 or user_id > len(database):
+    sttm = select(User).where(User.id == user_id)
+    user_db: UserPublic = session.scalar(sttm)
+
+    if not user_db:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='User Not Found...'
         )
-    user_with_id = database[user_id - 1]
 
-    return user_with_id
+    return user_db
 
 
 @app.put(
@@ -83,7 +82,16 @@ def update_user(
     user_db.password = user.password
 
     session.add(user_db)
-    session.commit()
+
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail='Username or Email already exists!!',
+        )
+
     session.refresh(user_db)
 
     return user_db
