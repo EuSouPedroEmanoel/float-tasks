@@ -5,6 +5,7 @@ class Message(BaseModel):
     message: str
 
 
+# region - User
 class UserSchema(BaseModel):
     username: str
     email: EmailStr
@@ -25,3 +26,11 @@ class UserDB(UserSchema):
 
 class UserList(BaseModel):
     users: list[UserPublic]
+
+
+# endregion
+
+
+class Token(BaseModel):
+    token_type: str
+    access_token: str

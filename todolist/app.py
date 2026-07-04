@@ -1,13 +1,20 @@
 from http import HTTPStatus
 
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from todolist.database import get_session
 from todolist.models import User
-from todolist.schemas import Message, UserList, UserPublic, UserSchema
+from todolist.schemas import Message, Token, UserList, UserPublic, UserSchema
+from todolist.security import (
+    create_access_token,
+    get_current_user,
+    get_password_hash,
+    verify_password,
+)
 
 app = FastAPI()
 database = []
@@ -21,7 +28,9 @@ def read_root():
 @app.post('/users/', status_code=HTTPStatus.CREATED, response_model=UserPublic)
 def create_user(user: UserSchema, session: Session = Depends(get_session)):
 
-    db_user = User(**user.model_dump())
+    user_data = user.model_dump()
+    user_data['password'] = get_password_hash(user_data['password'])
+    db_user = User(**user_data)
     session.add(db_user)
 
     try:
@@ -42,6 +51,7 @@ def read_users(
     session: Session = Depends(get_session),
     limit: int = 10,
     offset: int = 0,
+    current_user=Depends(get_current_user),
 ):
 
     users = session.scalars(select(User).limit(limit).offset(offset))
@@ -67,21 +77,22 @@ def read_user_by_id(user_id: int, session: Session = Depends(get_session)):
     '/users/{user_id}', status_code=HTTPStatus.OK, response_model=UserPublic
 )
 def update_user(
-    user_id: int, user: UserSchema, session: Session = Depends(get_session)
+    user_id: int,
+    user: UserSchema,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
-    sttm = select(User).where(User.id == user_id)
-    user_db: UserSchema = session.scalar(sttm)
 
-    if not user_db:
+    if user_id != current_user.id:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User Not Found...'
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
         )
 
-    user_db.username = user.username
-    user_db.email = user.email
-    user_db.password = user.password
+    current_user.username = user.username
+    current_user.email = user.email
+    current_user.password = user.password
 
-    session.add(user_db)
+    session.add(current_user)
 
     try:
         session.commit()
@@ -92,24 +103,47 @@ def update_user(
             detail='Username or Email already exists!!',
         )
 
-    session.refresh(user_db)
+    session.refresh(current_user)
 
-    return user_db
+    return current_user
 
 
 @app.delete(
     '/users/{user_id}', status_code=HTTPStatus.OK, response_model=Message
 )
-def delete_user(user_id: int, session: Session = Depends(get_session)):
-    sttm = select(User).where(User.id == user_id)
-    user_db = session.scalar(sttm)
-
-    if not user_db:
+def delete_user(
+    user_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    if user_id != current_user.id:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User Not Found...'
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
         )
 
-    session.delete(user_db)
+    session.delete(current_user)
     session.commit()
 
     return {'message': 'User Deleted'}
+
+
+@app.post('/token', response_model=Token)
+def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    session: Session = Depends(get_session),
+):
+    sttm = select(User).where(User.username == form_data.username)
+    user = session.scalar(sttm)
+
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='User Not Found...'
+        )
+    if not verify_password(form_data.password, user.password):
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail='Username or Password is wrong',
+        )
+
+    access_token = create_access_token(data={'sub': user.username})
+    return {'access_token': access_token, 'token_type': 'Bearer'}
