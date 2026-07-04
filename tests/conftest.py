@@ -11,6 +11,7 @@ from todolist.app import app
 from todolist.database import get_session
 from todolist.models import User, table_registry
 from todolist.security import get_password_hash
+from todolist.settings import Settings
 
 
 @pytest.fixture
@@ -34,10 +35,13 @@ def session():
     )
     table_registry.metadata.create_all(engine)
 
-    with Session(engine) as session:
+    session = Session(engine)
+    try:
         yield session
-
-    table_registry.metadata.drop_all(engine)
+    finally:
+        session.close()
+        table_registry.metadata.drop_all(engine)
+        engine.dispose()
 
 
 @contextmanager
@@ -79,8 +83,13 @@ def user(session: Session):
 @pytest.fixture
 def token(client, user):
     response = client.post(
-        '/token',
+        '/auth/token',
         data={'username': user.username, 'password': user.clean_password},
     )
 
     return response.json()['access_token']
+
+
+@pytest.fixture
+def settings():
+    return Settings()
