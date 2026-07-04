@@ -137,7 +137,8 @@ def login_for_access_token(
 
     if not user:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User Not Found...'
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail='Username or Password is wrong',
         )
     if not verify_password(form_data.password, user.password):
         raise HTTPException(

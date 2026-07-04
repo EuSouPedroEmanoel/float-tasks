@@ -137,7 +137,16 @@ def test_delete_user(client, user, token):
     assert response.json() == {'message': 'User Deleted'}
 
 
-def test_raise_update_user(client, token):
+def test_raise_delete_user_forbidden(client, token):
+    response = client.delete(
+        '/users/42',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
+
+
+def test_raise_update_user_forbidden(client, token):
     response = client.put(
         '/users/42',
         headers={'Authorization': f'Bearer {token}'},
@@ -162,3 +171,27 @@ def test_get_token(client, user):
     assert response.status_code == HTTPStatus.OK
     assert token['token_type'] == 'Bearer'
     assert 'access_token' in token
+
+
+def test_raise_login_for_acess_token_not_found_user(client):
+    response = client.post(
+        '/token',
+        data={
+            'username': 'test',
+            'password': 'password',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_raise_login_for_acess_token_incorrect_password(client, user):
+    response = client.post(
+        '/token',
+        data={
+            'username': f'{user.username}',
+            'password': 'password',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
