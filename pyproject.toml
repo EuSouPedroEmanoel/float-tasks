@@ -14,10 +14,10 @@ dependencies = [
     "sqlalchemy-stubs (>=0.4,<0.5)",
     "pydantic-settings (>=2.14.2,<3.0.0)",
     "alembic (>=1.18.5,<2.0.0)",
-    "pwdlib (==0.3.0)",
+    "pwdlib[argon2] (>=0.3.0,<0.4.0)",
     "pyjwt (==2.13.0)",
     "aiosqlite (==0.22.1)",
-    "asyncio (==4.0.0)"
+    "asyncio (==4.0.0)",
 ]
 
 [build-system]
@@ -31,7 +31,9 @@ dev = [
     "pytest-cov (>=7.1.0,<8.0.0)",
     "taskipy (>=1.14.1,<2.0.0)",
     "harlequin (>=2.5.2,<3.0.0)",
-    "pytest-asyncio (>=1.4.0,<2.0.0)"
+    "pytest-asyncio (>=1.4.0,<2.0.0)",
+    "factory-boy (>=3.3.3,<4.0.0)",
+    "freezegun (>=1.5.5,<2.0.0)"
 ]
 
 [tool.ruff]

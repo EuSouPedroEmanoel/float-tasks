@@ -58,14 +58,10 @@ def test_read_users(client, user, token):
 
 
 def test_read_user_by_id(client, user):
-    response = client.get('/users/1')
+    response = client.get(f'/users/{user.id}')
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {
-        'username': 'Teste',
-        'email': 'test@test.com',
-        'id': 1,
-    }
+    assert response.json() == UserPublic.model_validate(user).model_dump()
 
 
 def test_raise_read_user_by_id(client):
@@ -130,18 +126,18 @@ def test_delete_user(client, user, token):
     assert response.json() == {'message': 'User Deleted'}
 
 
-def test_raise_delete_user_forbidden(client, token):
+def test_raise_delete_user_forbidden(client, other_user, token):
     response = client.delete(
-        '/users/42',
+        f'/users/{other_user.id}',
         headers={'Authorization': f'Bearer {token}'},
     )
 
     assert response.status_code == HTTPStatus.FORBIDDEN
 
 
-def test_raise_update_user_forbidden(client, token):
+def test_raise_update_user_forbidden(client, other_user, token):
     response = client.put(
-        '/users/42',
+        f'/users/{other_user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'Pedro',
