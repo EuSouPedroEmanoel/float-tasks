@@ -8,6 +8,7 @@ __pycache__/
 # Project stuff
 database.db
 .idea/
+docker-compose.yml
 
 # C extensions
 *.so

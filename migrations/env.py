@@ -1,6 +1,5 @@
 from logging.config import fileConfig
 
-from alembic.templates.pyproject_async.env import do_run_migrations
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlalchemy import pool
 
