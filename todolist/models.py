@@ -2,8 +2,13 @@ from datetime import datetime
 from enum import Enum
 
 from sqlalchemy import ForeignKey, func
-from sqlalchemy.orm import Mapped, mapped_column, registry, relationship
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    registry,
+    relationship,
+    validates,
+)
 
 table_registry = registry()
 
@@ -58,7 +63,7 @@ class Task:
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
 
     @validates('state')
-    def validate_state(self, key, value):
+    def validate_state(self, key, value):  # noqa: PLR6301
         if isinstance(value, str) and not isinstance(value, TasksStates):
             return TasksStates(value)
         return value

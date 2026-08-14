@@ -4,8 +4,8 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from todolist.models import User
 from tests.factories import TaskFactory
+from todolist.models import User
 
 
 @pytest.mark.asyncio
@@ -33,5 +33,5 @@ async def test_create_user(session: AsyncSession, mock_db_time):
 
 @pytest.mark.asyncio
 async def test_wrong_enum_in_create_task(user, session):
-    with pytest.raises(ValueError):
-        task = TaskFactory.build(user_id=user.id ,state='invalid')
+    with pytest.raises(ValueError, match='is not a valid TasksStates'):
+        TaskFactory.build(user_id=user.id, state='invalid')
